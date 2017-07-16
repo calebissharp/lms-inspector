@@ -27,6 +27,7 @@ A library for extracting metadata from an LMS archive.
 
 ```javascript
 const fs = require('fs');
+const path = require('path);
 const LMSInspector = require('lms-inspector');
 
 const file = new Uint8Array(fs.readFileSync(path.resolve(__dirname, 'file.zip'))).buffer;
