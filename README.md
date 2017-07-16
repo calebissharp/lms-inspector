@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/calebissharp/lms-inspector.svg?branch=master)](https://travis-ci.org/calebissharp/lms-inspector)
+[![npm](https://img.shields.io/npm/v/lms-inspector.svg)](https://www.npmjs.com/package/lms-inspector)
 # lms-inspector
 
 A library for extracting metadata from an LMS archive.
