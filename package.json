@@ -2,7 +2,7 @@
   "name": "lms-inspector",
   "version": "1.0.1",
   "description": "Extract metadata from an LMS archive",
-  "main": "lib/library.lib.js",
+  "main": "dist/lms-inspector.min.js",
   "scripts": {
     "build": "webpack --env build",
     "dev": "webpack --progress --colors --watch --env dev",
