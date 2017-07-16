@@ -4,6 +4,8 @@
 
 A library for extracting metadata from an LMS archive.
 
+Example: [https://github.com/calebissharp/lms-inspector-example](lms-inspector-example)
+
 ## Getting Started
 
 ### Clone this repository
