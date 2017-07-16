@@ -1,0 +1,48 @@
+{
+  "name": "lms-inspector",
+  "version": "1.0.0",
+  "description": "Extract metadata from an LMS archive",
+  "main": "lib/library.lib.js",
+  "scripts": {
+    "build": "webpack --env build",
+    "dev": "webpack --progress --colors --watch --env dev",
+    "test": "jest",
+    "test:watch": "npm run test -- --watch"
+  },
+  "devDependencies": {
+    "babel-cli": "6.24.1",
+    "babel-core": "6.24.1",
+    "babel-eslint": "7.2.3",
+    "babel-jest": "^20.0.3",
+    "babel-loader": "7.0.0",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-preset-es2015": "6.24.1",
+    "chai": "3.5.0",
+    "eslint": "3.19.0",
+    "eslint-loader": "1.7.1",
+    "jest": "^20.0.4",
+    "mocha": "3.3.0",
+    "webpack": "3.1.0",
+    "yargs": "7.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calebissharp/lms-inspector.git"
+  },
+  "keywords": [
+    "lms",
+    "metadata",
+    "zip",
+    "compress"
+  ],
+  "author": "Caleb Sharp",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/calebissharp/lms-inspector"
+  },
+  "homepage": "https://github.com/calebissharp/lms-inspector",
+  "dependencies": {
+    "jszip": "^3.1.3",
+    "text-encoding": "^0.6.4"
+  }
+}
