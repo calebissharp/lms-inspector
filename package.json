@@ -1,6 +1,6 @@
 {
   "name": "lms-inspector",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Extract metadata from an LMS archive",
   "main": "dist/lms-inspector.min.js",
   "scripts": {
