@@ -1,5 +1,14 @@
 language: node_js
 node_js:
-  - "8"
-script: yarn build
+- '8'
+script:
+- yarn build
+- yarn test
+deploy:
+  provider: npm
+  email: calebissharp@gmail.com
+  on:
+    tags: true
+  api_key:
+    secure: APffG0d+93LQi2TpaKmgUzUWMVNEwus7Fj3UcMogNi+lEpAG26tAt+9/biyAcEVisvDReVOZyA2N1kieYWLksA0GlJERRaxd5UTw4+lxP6zxNXMXdCJgvIMlp+j39d1VZc566DW6mFq+dova3mdaC4wvuN9GPPweWHgJSMCSJJxI09bMv8xsOLQLIHnwDsCCGDLfONklYfIdZ4sTZZD6P+EGVTnWE73PUwSj9L8d3ioK2Y+iAtA/oN6UwvzJfKtrIUJ+vYX63xTPHaMcdpjVmQMD2GKS7bRTL2AyF+yZOd9eramZw2uQI58X5mWiEnHPkh74cp6vBhs0gqU4Nb3Fctvloo/+/GHe5bHcXcvjCSw61KypdfqOwudkRGe1R0jl8NrxwCQdDmSxuHa86LehFh69jvEQmBgAYsLajycsgWnI3Tzh+vFkZRbIqFW7Hm/CRfYdMlYvD7l7+Z0dvt6HOFgCQh1DluiS0nGDQfHIHb6VM2AbfwoHvvt/HF14/NCsn/rWqYfrXFn30ILN9agSCmIaH83XXiEjF4iHsdpTtfzNf9ESQsdF/mmQaTi8tF6fAPBphgPfnKjfMrROnJCOrwftEkIav2/KeVtVFyUVWbnrAWYZ7Cin5n/EO2qBBpiu9xb+geruWSG2YJpHuYHj76wL92a4ip6FNkXre9vhOsg=
 cache: yarn
