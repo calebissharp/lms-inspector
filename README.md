@@ -13,6 +13,9 @@ A library for extracting metadata from an LMS archive.
 ### Watch for changes and build
 `yarn dev`
 
+### Build
+`yarn build`
+
 ### Run tests
 `yarn test`
 
