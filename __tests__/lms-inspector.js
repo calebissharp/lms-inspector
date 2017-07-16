@@ -11,6 +11,9 @@ const moodleZipArrayBuffer = new Uint8Array(fs.readFileSync(path.resolve(__dirna
 // gzip
 const moodleArrayBuffer = new Uint8Array(fs.readFileSync(path.resolve(__dirname, 'samples/moodle.mbz'))).buffer;
 
+// image
+const potatoArrayBuffer = new Uint8Array(fs.readFileSync(path.resolve(__dirname, 'samples/potato.jpg'))).buffer;
+
 it('converts a file to an ArrayBuffer', () => {
   const buffer = new ArrayBuffer(10);
   const file = new File([buffer], 'filename');
@@ -35,21 +38,33 @@ it('can uncompress a gzip', () => {
 
 it('can determine what kind of lms a list of files is for', () => {
   LMSInspector.uncompressZip(buzzArrayBuffer)
-    .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('buzz'));
+    .then(LMSInspector.checkForLMS)
+    .then(name => expect(name).toEqual('buzz'));
   LMSInspector.uncompressZip(blackboardArrayBuffer)
-    .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('blackboard'));
+    .then(LMSInspector.checkForLMS)
+    .then(name => expect(name).toEqual('blackboard'));
   LMSInspector.uncompressZip(canvasArrayBuffer)
-    .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('canvas'));
+    .then(LMSInspector.checkForLMS)
+    .then(name => expect(name).toEqual('canvas'));
   LMSInspector.uncompressZip(d2lArrayBuffer)
-    .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('d2l'));
+    .then(LMSInspector.checkForLMS)
+    .then(name => expect(name).toEqual('d2l'));
   LMSInspector.uncompressZip(moodleZipArrayBuffer)
-    .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('moodle'));
+    .then(LMSInspector.checkForLMS)
+    .then(name => expect(name).toEqual('moodle'));
 
   LMSInspector.uncompressGzip(moodleArrayBuffer)
-  .then(files => expect(LMSInspector.checkForLMS(files)).toEqual('moodle'));
+  .then(LMSInspector.checkForLMS)
+  .then(name => expect(name).toEqual('moodle'));
 });
 
 it('inspects a file', () => {
   LMSInspector.inspect(new File([buzzArrayBuffer], 'buzz.zip'))
     .then(type => expect(type).toEqual('buzz'));
+});
+
+it('returns an error if the file is not an LMS archive', () => {
+  LMSInspector.inspect(new File([potatoArrayBuffer], 'potato.jpg'))
+    .then(console.log)
+    .catch(error => expect(error).toEqual('Could not determine compression type'));
 });

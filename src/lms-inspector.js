@@ -3,18 +3,17 @@ import pako from 'pako';
 import { TextDecoder } from 'text-encoding';
 
 export const LMSInspector = {
-  inspect: file => new Promise((resolve, reject) => {
+  inspect: file => (
     LMSInspector.convertFileToArrayBuffer(file)
       .then(buffer => {
         const compression = LMSInspector.determineCompression(buffer);
 
         if (compression === 'zip') return LMSInspector.uncompressZip(buffer);
         if (compression === 'gzip') return LMSInspector.uncompressGzip(buffer);
-        return new Error('Could not determine compression type');
+        return Promise.reject('Could not determine compression type');
       })
       .then(LMSInspector.checkForLMS)
-      .then(resolve);
-  }),
+  ),
   convertFileToArrayBuffer: file => new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -44,17 +43,15 @@ export const LMSInspector = {
       .slice(1); // remove big empty first entry
     resolve(files);
   }),
-  checkForLMS: filenames => {
-    let result = '';
-
+  checkForLMS: filenames => new Promise((resolve, reject) => {
     filenames.forEach(name => {
-      if (name.includes('course_settings')) result = 'canvas';
-      if (name.includes('moodle') || name.includes('completion.xml')) result = 'moodle';
-      if (name.includes('bb-')) result = 'blackboard';
-      if (name.includes('brainhoneymanifest')) result = 'buzz';
-      if (name.includes('d2l')) result = 'd2l';
+      if (name.includes('course_settings')) resolve('canvas');
+      if (name.includes('moodle') || name.includes('completion.xml')) resolve('moodle');
+      if (name.includes('bb-')) resolve('blackboard');
+      if (name.includes('brainhoneymanifest')) resolve('buzz');
+      if (name.includes('d2l')) resolve('d2l');
     });
 
-    return result;
-  }
+    reject('File is not an LMS archive');
+  })
 };
