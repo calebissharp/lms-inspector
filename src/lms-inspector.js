@@ -1,7 +1,15 @@
+/** @module lms-inspector */
+
 import JSZip from 'jszip';
 import pako from 'pako';
 import { TextDecoder } from 'text-encoding';
 
+/**
+ * Reads a File into an `ArrayBuffer`
+ * @method convertFileToArrayBuffer
+ * @param {File} file - file to convert to ArrayBuffer
+ * @returns {Promise.<ArrayBuffer>}
+ */
 export const convertFileToArrayBuffer = file => new Promise((resolve, reject) => {
   const reader = new FileReader();
 
@@ -10,6 +18,12 @@ export const convertFileToArrayBuffer = file => new Promise((resolve, reject) =>
   reader.readAsArrayBuffer(file);
 });
 
+/**
+ * Looks at the first byte of an ArrayBuffer to get the compression type
+ * @method determineCompression
+ * @param {ArrayBuffer} arrayBuffer - the ArrayBuffer containing the LMS archive
+ * @returns {String} - the type of compression
+ */
 export const determineCompression = arrayBuffer => {
   const bytes = new Uint8Array(arrayBuffer);
 
@@ -20,11 +34,23 @@ export const determineCompression = arrayBuffer => {
   }
 };
 
+/**
+ * Extracts a zip file and returns a list of filenames
+ * @method uncompressZip
+ * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
+ * @returns {Promise.<Array.<String>>} - an array of filenames in the zip
+ */
 export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
   const zip = new JSZip();
   zip.loadAsync(arrayBuffer).then(() => resolve(Object.keys(zip.files)));
 });
 
+/**
+ * Extracts a gzip file and returns a list of filenames
+ * @method uncompressGzip
+ * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
+ * @returns {Promise.<Array.<String>>} - an array of filenames in the gzip
+ */
 export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
   const uncompressed = pako.inflate(arrayBuffer);
   const files = new TextDecoder('utf-8').decode(uncompressed)
@@ -35,6 +61,12 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
   resolve(files);
 });
 
+/**
+ * Looks at a list of files and determines which LMS they are for, if any
+ * @method checkForLMS
+ * @param {Array.<String>} filenames - an array of filenames in an archive
+ * @returns {Promise.<String>} - the LMS type
+ */
 export const checkForLMS = filenames => new Promise((resolve, reject) => {
   filenames.forEach(name => {
     if (name.includes('course_settings')) resolve('canvas');
@@ -47,6 +79,11 @@ export const checkForLMS = filenames => new Promise((resolve, reject) => {
   reject('File is not an LMS archive');
 });
 
+/**
+ * @method inspect
+ * @param {File} file - The file to inspect
+ * @returns {Promise.<String>} - The name of the LMS
+ */
 export const inspect = file => (
   convertFileToArrayBuffer(file)
     .then(buffer => {
