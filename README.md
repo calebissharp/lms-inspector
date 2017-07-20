@@ -4,7 +4,7 @@
 
 A library for extracting metadata from an LMS archive.
 
-Example: [https://github.com/calebissharp/lms-inspector-example](lms-inspector-example)
+Example: [https://github.com/calebissharp/lms-inspector-example](https://github.com/calebissharp/lms-inspector-example)
 
 ## Getting Started
 
@@ -34,7 +34,7 @@ const fs = require('fs');
 const path = require('path');
 const LMSInspector = require('lms-inspector');
 
-const file = new Uint8Array(fs.readFileSync(path.resolve(__dirname, 'file.zip'))).buffer;
+const file = new File(['hello world'], 'file.zip');
 
 LMSInspector.inspect(file)
   .then(name => { /* Do stuff */ });
