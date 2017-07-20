@@ -1,12 +1,13 @@
-/** @module lms-inspector */
-
 import JSZip from 'jszip';
 import pako from 'pako';
 import { TextDecoder } from 'text-encoding';
 
+/** @namespace LMSInspector */
+
 /**
  * Reads a File into an `ArrayBuffer`
  * @method convertFileToArrayBuffer
+ * @memberof LMSInspector
  * @param {File} file - file to convert to ArrayBuffer
  * @returns {Promise.<ArrayBuffer>}
  */
@@ -21,6 +22,7 @@ export const convertFileToArrayBuffer = file => new Promise((resolve, reject) =>
 /**
  * Looks at the first byte of an ArrayBuffer to get the compression type
  * @method determineCompression
+ * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArrayBuffer containing the LMS archive
  * @returns {String} - the type of compression
  */
@@ -37,6 +39,7 @@ export const determineCompression = arrayBuffer => {
 /**
  * Extracts a zip file and returns a list of filenames
  * @method uncompressZip
+ * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
  * @returns {Promise.<Array.<String>>} - an array of filenames in the zip
  */
@@ -48,6 +51,7 @@ export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
 /**
  * Extracts a gzip file and returns a list of filenames
  * @method uncompressGzip
+ * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
  * @returns {Promise.<Array.<String>>} - an array of filenames in the gzip
  */
@@ -64,6 +68,7 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
 /**
  * Looks at a list of files and determines which LMS they are for, if any
  * @method checkForLMS
+ * @memberof LMSInspector
  * @param {Array.<String>} filenames - an array of filenames in an archive
  * @returns {Promise.<String>} - the LMS type
  */
@@ -81,6 +86,7 @@ export const checkForLMS = filenames => new Promise((resolve, reject) => {
 
 /**
  * @method inspect
+ * @memberof LMSInspector
  * @param {File} file - The file to inspect
  * @returns {Promise.<String>} - The name of the LMS
  */
