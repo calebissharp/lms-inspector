@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { LMSInspector } from '../src/lms-inspector';
+import * as LMSInspector from '../src/lms-inspector';
 
 // zip
 const buzzArrayBuffer = new Uint8Array(fs.readFileSync(path.resolve(__dirname, 'samples/buzz.zip'))).buffer;
