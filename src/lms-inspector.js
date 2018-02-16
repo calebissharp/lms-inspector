@@ -1,6 +1,11 @@
 import JSZip from 'jszip';
 import pako from 'pako';
+import { Readable } from 'stream';
+import tar from 'tar-stream';
 import { TextDecoder } from 'text-encoding';
+import intoStream from 'into-stream';
+import gunzip from 'gunzip-maybe';
+import { Buffer } from 'buffer';
 
 /** @namespace LMSInspector */
 
@@ -53,24 +58,27 @@ export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
 
         resolve(result)
       })
-});
+  });
 });
 
 /**
- * Extracts a gzip file and returns a list of filenames
+ * Extracts a tar.gz file and returns a list of files
  * @method uncompressGzip
  * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
- * @returns {Promise.<Array.<String>>} - an array of filenames in the gzip
+ * @returns {Promise.<Object>} - an object with filenames and files
  */
 export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
-  const uncompressed = pako.inflate(arrayBuffer);
-  const files = new TextDecoder('utf-8').decode(uncompressed)
-    .substring(0, 1300) // take only the first part of the file that contains filenames
-    .replace(/\t|\d+|(f|c|d)\t|\?/g, '') // magical regexp to clean up messy uncompressed string
-    .split(/\n/g) // split the string into an array of filenames
-    .slice(1); // remove big empty first entry
-  resolve(files);
+	const extract = tar.extract()
+  const files = {}
+	intoStream(Buffer.from(arrayBuffer)).pipe(gunzip()).pipe(extract)
+    .on('entry', (header, stream, callback) => {
+      // files[header.name] = stream.read()
+      stream.resume()
+      stream.on('data', data => files[header.name] = data.toString())
+      stream.on('end', callback)
+    })
+    .on('finish', () => resolve(files))
 });
 
 /**
