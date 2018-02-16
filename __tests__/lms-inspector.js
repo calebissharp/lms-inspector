@@ -28,12 +28,12 @@ it('can determine the kind of compression an ArrayBuffer has', () => {
 
 it('can uncompress a zip', () => {
   LMSInspector.uncompressZip(buzzArrayBuffer)
-    .then(files => expect(files[0]).toEqual('brainhoneymanifest.xml'));
+    .then(files => expect(files['brainhoneymanifest.xml']).toBeDefined())
 });
 
 it('can uncompress a gzip', () => {
   LMSInspector.uncompressGzip(moodleArrayBuffer)
-    .then(files => expect(files[0]).toEqual('activities/'));
+    .then(files => expect(files['moodle_backup.xml']).toBeDefined());
 });
 
 it('can determine what kind of lms a list of files is for', () => {
