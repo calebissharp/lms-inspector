@@ -37,15 +37,23 @@ export const determineCompression = arrayBuffer => {
 };
 
 /**
- * Extracts a zip file and returns a list of filenames
+ * Extracts a zip file and returns a list of files
  * @method uncompressZip
  * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
- * @returns {Promise.<Array.<String>>} - an array of filenames in the zip
+ * @returns {Promise.<Object>} - an object with filenames and files
  */
 export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
   const zip = new JSZip();
-  zip.loadAsync(arrayBuffer).then(() => resolve(Object.keys(zip.files)));
+  zip.loadAsync(arrayBuffer).then(() => {
+    const entries = Object.values(zip.files)
+    Promise.all(entries.map(entry => entry.async('string').then(u8 => [entry.name, u8])))
+      .then(list => {
+        const result = list.reduce((acc, cur) => { acc[cur[0]] = cur[1]; return acc }, {})
+
+        resolve(result)
+      })
+});
 });
 
 /**
