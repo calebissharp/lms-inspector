@@ -73,8 +73,6 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
   const files = {}
 	intoStream(Buffer.from(arrayBuffer)).pipe(gunzip()).pipe(extract)
     .on('entry', (header, stream, callback) => {
-      // files[header.name] = stream.read()
-      // stream.resume()
       files[header.name] = ''
       stream.on('data', data => files[header.name] += data.toString())
       stream.on('end', callback)
