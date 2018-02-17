@@ -1,8 +1,5 @@
 import JSZip from 'jszip';
-import pako from 'pako';
-import { Readable } from 'stream';
 import tar from 'tar-stream';
-import { TextDecoder } from 'text-encoding';
 import intoStream from 'into-stream';
 import gunzip from 'gunzip-maybe';
 import { Buffer } from 'buffer';
@@ -51,13 +48,13 @@ export const determineCompression = arrayBuffer => {
 export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
   const zip = new JSZip();
   zip.loadAsync(arrayBuffer).then(() => {
-    const entries = Object.values(zip.files)
+    const entries = Object.values(zip.files);
     Promise.all(entries.map(entry => entry.async('string').then(u8 => [entry.name, u8])))
       .then(list => {
-        const result = list.reduce((acc, cur) => { acc[cur[0]] = cur[1]; return acc }, {})
-
-        resolve(result)
-      })
+        // eslint-disable-next-line no-return-assign
+        const result = list.reduce((acc, cur) => { acc[cur[0]] = cur[1]; return acc; }, {});
+        resolve(result);
+      });
   });
 });
 
@@ -69,15 +66,15 @@ export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
  * @returns {Promise.<Object>} - an object with filenames and files
  */
 export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
-	const extract = tar.extract()
-  const files = {}
-	intoStream(Buffer.from(arrayBuffer)).pipe(gunzip()).pipe(extract)
+  const extract = tar.extract();
+  const files = {};
+  intoStream(Buffer.from(arrayBuffer)).pipe(gunzip()).pipe(extract)
     .on('entry', (header, stream, callback) => {
-      files[header.name] = ''
-      stream.on('data', data => files[header.name] += data.toString())
-      stream.on('end', callback)
+      files[header.name] = '';
+      stream.on('data', data => { files[header.name] += data.toString(); });
+      stream.on('end', callback);
     })
-    .on('finish', () => resolve(files))
+    .on('finish', () => resolve(files));
 });
 
 /**
@@ -88,7 +85,7 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
  * @returns {String} - the LMS type
  */
 export const getType = files => {
-  const filenames = Object.keys(files)
+  const filenames = Object.keys(files);
   for (let name of filenames) {
     if (name.includes('course_settings/canvas_export.txt')) return 'canvas';
     if (name.includes('moodle') || name.includes('completion.xml')) return 'moodle';
@@ -101,7 +98,8 @@ export const getType = files => {
 };
 
 /**
- * Takes an LMS type, and the list of files in the archive, then looks through the files for information regarding the version
+ * Takes an LMS type, and the list of files in the archive, then looks through the files for information
+ * regarding the version
  * @method getVersion
  * @memberof LMSInspector
  * @param {String} type - the LMS type
@@ -120,6 +118,7 @@ export const getVersion = (type, files) => {
         const doc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
         return doc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
       }
+      return '';
     default:
       return '';
   }
@@ -137,7 +136,7 @@ export const getInfo = files => {
   const version = getVersion(type, files);
 
   return { type, version };
-}
+};
 
 /**
  * @method inspect
