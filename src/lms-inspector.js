@@ -90,7 +90,7 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
  */
 export const checkForLMS = filenames => new Promise((resolve, reject) => {
   filenames.forEach(name => {
-    if (name.includes('course_settings')) resolve('canvas');
+    if (name.includes('course_settings/canvas_export.txt')) resolve('canvas');
     if (name.includes('moodle') || name.includes('completion.xml')) resolve('moodle');
     if (name.includes('bb-')) resolve('blackboard');
     if (name.includes('brainhoneymanifest')) resolve('buzz');
