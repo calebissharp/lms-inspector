@@ -78,22 +78,6 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
 });
 
 /**
- * Uses an imsmanifest.xml file to determine what LMS the archive is for
- * @method checkManifest
- * @memberof LMSInspector
- * @param {String} manifest - the imsmanifest.xml file contents
- * @returns {String} - the LMS type
- */
-export const checkManifest = manifest => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(manifest, 'text/xml');
-  if (doc.getElementsByTagName('manifest')[0].getAttribute('identifier').includes('D2L')) {
-    return 'd2l';
-  }
-  return '';
-};
-
-/**
  * Looks at a list of files and determines which LMS they are for, if any
  * @method getType
  * @memberof LMSInspector
@@ -102,16 +86,14 @@ export const checkManifest = manifest => {
  */
 export const getType = files => {
   const filenames = Object.keys(files);
-  for (let name of filenames) {
-    if (name.includes('course_settings/canvas_export.txt')) return 'canvas';
-    if (name.includes('moodle') || name.includes('completion.xml')) return 'moodle';
-    if (name.includes('brainhoneymanifest')) return 'buzz';
-    if (name.includes('imsmanifest.xml')) {
-      if (checkManifest(files[name]) === 'd2l') {
-        return 'd2l';
-      }
-      return 'blackboard';
+  if (filenames.includes('course_settings/canvas_export.txt')) return 'canvas';
+  if (filenames.includes('moodle.xml') || filenames.includes('moodle_backup.xml')) return 'moodle';
+  if (filenames.includes('brainhoneymanifest.xml')) return 'buzz';
+  if (filenames.includes('imsmanifest.xml')) {
+    if (files['imsmanifest.xml'].includes('manifest identifier="D2L_')) {
+      return 'd2l';
     }
+    return 'blackboard';
   }
 
   return Promise.reject('File is not an LMS archive');
@@ -131,12 +113,12 @@ export const getVersion = (type, files) => {
     case 'moodle':
       const parser = new DOMParser();
       if (files['moodle.xml']) {
-        const doc = parser.parseFromString(files['moodle.xml'], 'text/xml');
-        return doc.getElementsByTagName('MOODLE_RELEASE')[0].childNodes[0].nodeValue;
+        const moodleDoc = parser.parseFromString(files['moodle.xml'], 'text/xml');
+        return moodleDoc.getElementsByTagName('MOODLE_RELEASE')[0].childNodes[0].nodeValue;
       }
       if (files['moodle_backup.xml']) {
-        const doc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
-        return doc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
+        const moodleBackupDoc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
+        return moodleBackupDoc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
       }
       return '';
     default:
