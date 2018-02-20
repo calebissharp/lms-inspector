@@ -113,12 +113,12 @@ export const getVersion = (type, files) => {
     case 'moodle':
       const parser = new DOMParser();
       if (files['moodle.xml']) {
-        const doc = parser.parseFromString(files['moodle.xml'], 'text/xml');
-        return doc.getElementsByTagName('MOODLE_RELEASE')[0].childNodes[0].nodeValue;
+        const moodleDoc = parser.parseFromString(files['moodle.xml'], 'text/xml');
+        return moodleDoc.getElementsByTagName('MOODLE_RELEASE')[0].childNodes[0].nodeValue;
       }
       if (files['moodle_backup.xml']) {
-        const doc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
-        return doc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
+        const moodleBackupDoc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
+        return moodleBackupDoc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
       }
       return '';
     default:
