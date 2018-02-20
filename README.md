@@ -30,12 +30,10 @@ Example: [https://github.com/calebissharp/lms-inspector-example](https://github.
 `npm install lms-inspector`
 
 ```javascript
-const fs = require('fs');
-const path = require('path');
 const LMSInspector = require('lms-inspector');
 
 const file = new File(['hello world'], 'file.zip');
 
 LMSInspector.inspect(file)
-  .then(name => { /* Do stuff */ });
+  .then(info => { /* Do stuff */ });
 ```

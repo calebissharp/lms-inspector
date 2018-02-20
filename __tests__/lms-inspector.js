@@ -28,39 +28,46 @@ it('can determine the kind of compression an ArrayBuffer has', () => {
 
 it('can uncompress a zip', () => {
   LMSInspector.uncompressZip(buzzArrayBuffer)
-    .then(files => expect(files[0]).toEqual('brainhoneymanifest.xml'));
+    .then(files => expect(files['brainhoneymanifest.xml']).toBeDefined())
 });
 
 it('can uncompress a gzip', () => {
   LMSInspector.uncompressGzip(moodleArrayBuffer)
-    .then(files => expect(files[0]).toEqual('activities/'));
+    .then(files => expect(files['moodle_backup.xml']).toBeDefined());
 });
 
 it('can determine what kind of lms a list of files is for', () => {
   LMSInspector.uncompressZip(buzzArrayBuffer)
-    .then(LMSInspector.checkForLMS)
-    .then(name => expect(name).toEqual('buzz'));
+    .then(files => expect(LMSInspector.getType(files)).toEqual('buzz'))
   LMSInspector.uncompressZip(blackboardArrayBuffer)
-    .then(LMSInspector.checkForLMS)
-    .then(name => expect(name).toEqual('blackboard'));
+    .then(files => expect(LMSInspector.getType(files)).toEqual('blackboard'))
   LMSInspector.uncompressZip(canvasArrayBuffer)
-    .then(LMSInspector.checkForLMS)
-    .then(name => expect(name).toEqual('canvas'));
+    .then(files => expect(LMSInspector.getType(files)).toEqual('canvas'))
   LMSInspector.uncompressZip(d2lArrayBuffer)
-    .then(LMSInspector.checkForLMS)
-    .then(name => expect(name).toEqual('d2l'));
+    .then(files => expect(LMSInspector.getType(files)).toEqual('d2l'))
   LMSInspector.uncompressZip(moodleZipArrayBuffer)
-    .then(LMSInspector.checkForLMS)
-    .then(name => expect(name).toEqual('moodle'));
+    .then(files => expect(LMSInspector.getType(files)).toEqual('moodle'))
 
   LMSInspector.uncompressGzip(moodleArrayBuffer)
-  .then(LMSInspector.checkForLMS)
-  .then(name => expect(name).toEqual('moodle'));
+  .then(files => expect(LMSInspector.getType(files)).toEqual('moodle'))
 });
 
 it('inspects a file', () => {
   LMSInspector.inspect(new File([buzzArrayBuffer], 'buzz.zip'))
-    .then(type => expect(type).toEqual('buzz'));
+    .then(info => expect(info).toEqual({
+      type: 'buzz',
+      version: '',
+    }));
+  LMSInspector.inspect(new File([moodleArrayBuffer], 'moodle.mbz'))
+    .then(info => expect(info).toEqual({
+      type: 'moodle',
+      version: '3.1.3 (Build: 20161114)',
+    }));
+  LMSInspector.inspect(new File([moodleZipArrayBuffer], 'moodle.zip'))
+    .then(info => expect(info).toEqual({
+      type: 'moodle',
+      version: '1.9.19+ (Build: 20121112)',
+    }));
 });
 
 it('returns an error if the file is not an LMS archive', () => {

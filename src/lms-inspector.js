@@ -1,6 +1,8 @@
 import JSZip from 'jszip';
-import pako from 'pako';
-import { TextDecoder } from 'text-encoding';
+import tar from 'tar-stream';
+import intoStream from 'into-stream';
+import gunzip from 'gunzip-maybe';
+import { Buffer } from 'buffer';
 
 /** @namespace LMSInspector */
 
@@ -37,58 +39,130 @@ export const determineCompression = arrayBuffer => {
 };
 
 /**
- * Extracts a zip file and returns a list of filenames
+ * Extracts a zip file and returns a list of files
  * @method uncompressZip
  * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
- * @returns {Promise.<Array.<String>>} - an array of filenames in the zip
+ * @returns {Promise.<Object>} - an object with filenames and files
  */
 export const uncompressZip = arrayBuffer => new Promise((resolve, reject) => {
   const zip = new JSZip();
-  zip.loadAsync(arrayBuffer).then(() => resolve(Object.keys(zip.files)));
+  zip.loadAsync(arrayBuffer).then(() => {
+    const entries = Object.values(zip.files);
+    Promise.all(entries.map(entry => entry.async('string').then(u8 => [entry.name, u8])))
+      .then(list => {
+        // eslint-disable-next-line no-return-assign
+        const result = list.reduce((acc, cur) => { acc[cur[0]] = cur[1]; return acc; }, {});
+        resolve(result);
+      });
+  });
 });
 
 /**
- * Extracts a gzip file and returns a list of filenames
+ * Extracts a tar.gz file and returns a list of files
  * @method uncompressGzip
  * @memberof LMSInspector
  * @param {ArrayBuffer} arrayBuffer - the ArayBuffer containing the LMS archive
- * @returns {Promise.<Array.<String>>} - an array of filenames in the gzip
+ * @returns {Promise.<Object>} - an object with filenames and files
  */
 export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
-  const uncompressed = pako.inflate(arrayBuffer);
-  const files = new TextDecoder('utf-8').decode(uncompressed)
-    .substring(0, 1300) // take only the first part of the file that contains filenames
-    .replace(/\t|\d+|(f|c|d)\t|\?/g, '') // magical regexp to clean up messy uncompressed string
-    .split(/\n/g) // split the string into an array of filenames
-    .slice(1); // remove big empty first entry
-  resolve(files);
+  const extract = tar.extract();
+  const files = {};
+  intoStream(Buffer.from(arrayBuffer)).pipe(gunzip()).pipe(extract)
+    .on('entry', (header, stream, callback) => {
+      files[header.name] = '';
+      stream.on('data', data => { files[header.name] += data.toString(); });
+      stream.on('end', callback);
+    })
+    .on('finish', () => resolve(files));
 });
 
 /**
- * Looks at a list of files and determines which LMS they are for, if any
- * @method checkForLMS
+ * Uses an imsmanifest.xml file to determine what LMS the archive is for
+ * @method checkManifest
  * @memberof LMSInspector
- * @param {Array.<String>} filenames - an array of filenames in an archive
- * @returns {Promise.<String>} - the LMS type
+ * @param {String} manifest - the imsmanifest.xml file contents
+ * @returns {String} - the LMS type
  */
-export const checkForLMS = filenames => new Promise((resolve, reject) => {
-  filenames.forEach(name => {
-    if (name.includes('course_settings')) resolve('canvas');
-    if (name.includes('moodle') || name.includes('completion.xml')) resolve('moodle');
-    if (name.includes('bb-')) resolve('blackboard');
-    if (name.includes('brainhoneymanifest')) resolve('buzz');
-    if (name.includes('d2l')) resolve('d2l');
-  });
+export const checkManifest = manifest => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(manifest, 'text/xml');
+  if (doc.getElementsByTagName('manifest')[0].getAttribute('identifier').includes('D2L')) {
+    return 'd2l';
+  }
+  return '';
+};
 
-  reject('File is not an LMS archive');
-});
+/**
+ * Looks at a list of files and determines which LMS they are for, if any
+ * @method getType
+ * @memberof LMSInspector
+ * @param {Object} files - an object with filenames and files
+ * @returns {String} - the LMS type
+ */
+export const getType = files => {
+  const filenames = Object.keys(files);
+  for (let name of filenames) {
+    if (name.includes('course_settings/canvas_export.txt')) return 'canvas';
+    if (name.includes('moodle') || name.includes('completion.xml')) return 'moodle';
+    if (name.includes('brainhoneymanifest')) return 'buzz';
+    if (name.includes('imsmanifest.xml')) {
+      if (checkManifest(files[name]) === 'd2l') {
+        return 'd2l';
+      }
+      return 'blackboard';
+    }
+  }
+
+  return Promise.reject('File is not an LMS archive');
+};
+
+/**
+ * Takes an LMS type, and the list of files in the archive, then looks through the files for information
+ * regarding the version
+ * @method getVersion
+ * @memberof LMSInspector
+ * @param {String} type - the LMS type
+ * @param {Object} files - an object containing the filenames and files in the archive
+ * @returns {String} - a string containing the version if found, or an empty string
+ */
+export const getVersion = (type, files) => {
+  switch (type) {
+    case 'moodle':
+      const parser = new DOMParser();
+      if (files['moodle.xml']) {
+        const doc = parser.parseFromString(files['moodle.xml'], 'text/xml');
+        return doc.getElementsByTagName('MOODLE_RELEASE')[0].childNodes[0].nodeValue;
+      }
+      if (files['moodle_backup.xml']) {
+        const doc = parser.parseFromString(files['moodle_backup.xml'], 'text/xml');
+        return doc.getElementsByTagName('moodle_release')[0].childNodes[0].nodeValue;
+      }
+      return '';
+    default:
+      return '';
+  }
+};
+
+/**
+ * Takes a list of files to extract information about the archive
+ * @method getInfo
+ * @memberof LMSInspector
+ * @param {Object} file - the filenames and files
+ * @returns {Object} - an object containing information about the archive
+ */
+export const getInfo = files => {
+  const type = getType(files);
+  const version = getVersion(type, files);
+
+  return { type, version };
+};
 
 /**
  * @method inspect
  * @memberof LMSInspector
  * @param {File} file - The file to inspect
- * @returns {Promise.<String>} - The name of the LMS
+ * @returns {Promise.<Object>} - The information of the LMS
  */
 export const inspect = file => (
   convertFileToArrayBuffer(file)
@@ -99,5 +173,5 @@ export const inspect = file => (
       if (compression === 'gzip') return uncompressGzip(buffer);
       return Promise.reject('Could not determine compression type');
     })
-    .then(checkForLMS)
+    .then(getInfo)
 );
