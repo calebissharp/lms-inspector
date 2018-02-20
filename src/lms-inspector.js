@@ -78,22 +78,6 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
 });
 
 /**
- * Uses an imsmanifest.xml file to determine what LMS the archive is for
- * @method checkManifest
- * @memberof LMSInspector
- * @param {String} manifest - the imsmanifest.xml file contents
- * @returns {String} - the LMS type
- */
-export const checkManifest = manifest => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(manifest, 'text/xml');
-  if (doc.getElementsByTagName('manifest')[0].getAttribute('identifier').includes('D2L')) {
-    return 'd2l';
-  }
-  return '';
-};
-
-/**
  * Looks at a list of files and determines which LMS they are for, if any
  * @method getType
  * @memberof LMSInspector
