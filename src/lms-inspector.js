@@ -78,6 +78,22 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
 });
 
 /**
+ * Uses an imsmanifest.xml file to determine what LMS the archive is for
+ * @method checkManifest
+ * @memberof LMSInspector
+ * @param {String} manifest - the imsmanifest.xml file contents
+ * @returns {String} - the LMS type
+ */
+export const checkManifest = manifest => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(manifest, 'text/xml');
+  if (doc.getElementsByTagName('manifest')[0].getAttribute('identifier').includes('D2L')) {
+    return 'd2l';
+  }
+  return '';
+};
+
+/**
  * Looks at a list of files and determines which LMS they are for, if any
  * @method getType
  * @memberof LMSInspector
@@ -89,9 +105,13 @@ export const getType = files => {
   for (let name of filenames) {
     if (name.includes('course_settings/canvas_export.txt')) return 'canvas';
     if (name.includes('moodle') || name.includes('completion.xml')) return 'moodle';
-    if (name.includes('bb-')) return 'blackboard';
     if (name.includes('brainhoneymanifest')) return 'buzz';
-    if (name.includes('d2l')) return 'd2l';
+    if (name.includes('imsmanifest.xml')) {
+      if (checkManifest(files[name]) === 'd2l') {
+        return 'd2l';
+      }
+      return 'blackboard';
+    }
   }
 
   return Promise.reject('File is not an LMS archive');
