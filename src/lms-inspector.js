@@ -86,16 +86,14 @@ export const uncompressGzip = arrayBuffer => new Promise((resolve, reject) => {
  */
 export const getType = files => {
   const filenames = Object.keys(files);
-  for (let name of filenames) {
-    if (name.includes('course_settings/canvas_export.txt')) return 'canvas';
-    if (name.includes('moodle') || name.includes('completion.xml')) return 'moodle';
-    if (name.includes('brainhoneymanifest')) return 'buzz';
-    if (name.includes('imsmanifest.xml')) {
-      if (checkManifest(files[name]) === 'd2l') {
-        return 'd2l';
-      }
-      return 'blackboard';
+  if (filenames.includes('course_settings/canvas_export.txt')) return 'canvas';
+  if (filenames.includes('moodle.xml') || filenames.includes('moodle_backup.xml')) return 'moodle';
+  if (filenames.includes('brainhoneymanifest.xml')) return 'buzz';
+  if (filenames.includes('imsmanifest.xml')) {
+    if (files['imsmanifest.xml'].includes('manifest identifier="D2L_')) {
+      return 'd2l';
     }
+    return 'blackboard';
   }
 
   return Promise.reject('File is not an LMS archive');
